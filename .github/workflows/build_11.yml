@@ -1,15 +1,13 @@
-name: Build Bachata S4 for Android 10+
+name: Build Bachata S4 for Android 11
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    name: Compile APK (Android 10+)
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout Repository
+      - name: Checkout Core Repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -20,25 +18,21 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Configure Android SDK Environment
+      - name: Configure SDK Environment
         run: |
           echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          
-          # Automatically accept SDK licenses
           yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          
-          # Install essential platform and build tools
           /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Force Android 10 (API 29) Target
+      - name: Force Android 11 (API 30) Target
         run: |
           find android/BachataS4 -name "build.gradle" -o -name "build.gradle.kts" | while read file; do
-            sed -i 's/minSdk[[:space:]]*=[[:space:]]*[0-9]*/minSdk = 29/g' "$file"
-            sed -i 's/minSdkVersion[[:space:]]*[0-9]*/minSdkVersion 29/g' "$file"
+            sed -i 's/minSdk[[:space:]]*=[[:space:]]*[0-9]*/minSdk = 30/g' "$file"
+            sed -i 's/minSdkVersion[[:space:]]*[0-9]*/minSdkVersion 30/g' "$file"
           done
 
-      - name: Build with Gradle
+      - name: Build APK via Gradle
         working-directory: android/BachataS4
         run: |
           chmod +x ./gradlew
@@ -47,5 +41,5 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Bachata-S4-Android10-Build
+          name: Bachata-S4-Android11-APK
           path: android/BachataS4/app/build/outputs/apk/release/*.apk
